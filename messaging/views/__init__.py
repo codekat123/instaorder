@@ -1,1 +1,1 @@
-from .webhook import meta_webhook
+from .webhook import telegram_webhook

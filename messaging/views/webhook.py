@@ -1,12 +1,34 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response 
-from messaging.services import handle_message
+from ..services import handle_message
+import requests
+import os 
+
+
+def send_telegram_message(chat_id, text):
+    url = f"https://api.telegram.org/bot{os.getenv('BOT_TOKEN')}/sendMessage"
+    requests.post(
+        url,
+        json={
+            "chat_id": chat_id,
+            "text": text
+        }
+    )
 
 @api_view(["POST"])
-def meta_webhook(request):
-    message = request.data.get("message", "")
-    sender_id = request.data.get("sender_id", "123")  
+def telegram_webhook(request):
+    data = request.data
+
+    message_data = data.get("message")
+    if not message_data:
+        return Response({"status": "ignored"})
+
+    message = message_data.get("text", "")
+    sender_id = str(message_data.get("chat", {}).get("id"))
 
     reply = handle_message(message, sender_id)
 
-    return Response({"reply": reply})
+
+    send_telegram_message(sender_id, reply)
+
+    return Response({"status": "ok"})

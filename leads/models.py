@@ -1,5 +1,5 @@
 from django.db import models
-
+from products.models import Product
 
 class Lead(models.Model):
 

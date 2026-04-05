@@ -28,3 +28,25 @@ class WebhookTests(APITestCase):
         response = self.client.post(self.url, {"message": "YES", "sender_id": self.sender_id}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("Order confirmed for Test Product ✅", response.data['reply'])
+    
+    def test_unknown_message(self):
+        
+        response = self.client.post(self.url,{"message":"random message","sender_id":self.sender_id}, format='json')
+
+        self.assertIn('Sorry',response.data['reply'])
+
+    def test_product_not_found(self):
+        response = self.client.post(self.url, {
+            "message": "price of something else",
+            "sender_id": self.sender_id
+        }, format='json')
+
+        self.assertIn("Which product", response.data['reply'])
+    
+    def test_confirm_without_order(self):
+        response = self.client.post(self.url, {
+            "message": "YES",
+            "sender_id": self.sender_id
+        }, format='json')
+
+        self.assertIn("No pending order", response.data['reply'])
