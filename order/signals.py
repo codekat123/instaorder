@@ -5,21 +5,21 @@ from messaging.utils import send_telegram_message
 import os
 
 @receiver(post_save, sender=Order)
-def notify_admin_order(order):
+def notify_admin_order(sender, instance, created, **kwargs):
     buttons = {
         "inline_keyboard": [
             [
                 {
                     "text": "✅ Confirm",
-                    "callback_data": f"admin_confirm_{order.id}"
+                    "callback_data": f"admin_confirm_{instance.id}"
                 },
                 {
                     "text": "🚚 Ship",
-                    "callback_data": f"admin_ship_{order.id}"
+                    "callback_data": f"admin_ship_{instance.id}"
                 },
                 {
                     "text": "❌ Cancel",
-                    "callback_data": f"admin_cancel_{order.id}"
+                    "callback_data": f"admin_cancel_{instance.id}"
                 }
             ]
         ]
@@ -27,9 +27,9 @@ def notify_admin_order(order):
 
     send_telegram_message(
         os.getenv("ADMIN_CHAT_ID"),
-        f"🛒 *New Order*\n\n"
-        f"👤 User: `{order.lead.external_id}`\n"
-        f"📦 Product: *{order.product.name}*\n"
-        f"📌 Status: {order.status}",
+        f"🛒 *New instance*\n\n"
+        f"👤 User: `{instance.lead.external_id}`\n"
+        f"📦 Product: *{instance.product.name}*\n"
+        f"📌 Status: {instance.status}",
         reply_markup=buttons
     )
