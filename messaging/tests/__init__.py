@@ -1,1 +1,1 @@
-from .webhook import WebhookTests
+from .webhook import TelegramWebhookTests

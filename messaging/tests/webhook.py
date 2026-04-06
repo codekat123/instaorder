@@ -4,49 +4,70 @@ from rest_framework import status
 from products.models import Product
 from leads.models import Lead
 from order.models import Order
+from django.test import TestCase
+from rest_framework.test import APIClient
+from unittest.mock import patch
 
 
-
-class WebhookTests(APITestCase):
+class TelegramWebhookTests(TestCase):
     def setUp(self):
-        self.url = reverse('meta-webhook')
-        self.product = Product.objects.create(name="Test Product", price=9.99)
-        self.sender_id = "test_sender_123"
+        self.client = APIClient()
+        self.url = reverse("telegram-webhook")
 
-    def test_price_inquiry(self):
-        response = self.client.post(self.url, {"message": "What's the price of Test Product?", "sender_id": self.sender_id}, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("The price of Test Product is 9.99", response.data['reply'])
+    @patch("messaging.views.webhook.send_telegram_message")
+    @patch("messaging.views.webhook.handle_message")
+    def test_message_flow(self, mock_handle_message, mock_send):
+        """
+        Test: normal message goes to handle_message
+        """
+        mock_handle_message.return_value = {
+            "text": "Hello",
+            "reply_markup": None
+        }
 
-    def test_order_creation_and_confirmation(self):
+        payload = {
+            "message": {
+                "text": "/start",
+                "chat": {"id": 123}
+            }
+        }
 
-        response = self.client.post(self.url, {"message": "I want to buy Test Product", "sender_id": self.sender_id}, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("Order created for Test Product. Reply YES to confirm.", response.data['reply'])
+        response = self.client.post(self.url, payload, format="json")
 
- 
-        response = self.client.post(self.url, {"message": "YES", "sender_id": self.sender_id}, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("Order confirmed for Test Product ✅", response.data['reply'])
-    
-    def test_unknown_message(self):
-        
-        response = self.client.post(self.url,{"message":"random message","sender_id":self.sender_id}, format='json')
+        self.assertEqual(response.status_code, 200)
+        mock_handle_message.assert_called_once_with("/start", 123)
+        mock_send.assert_called_once()
+    @patch("messaging.views.webhook.send_telegram_message")
+    @patch("messaging.views.webhook.handle_callback")
+    @patch("messaging.views.webhook.requests.post")
+    def test_callback_flow(self, mock_requests, mock_handle_callback, mock_send):
+        mock_handle_callback.return_value = {
+            "text": "Done",
+            "reply_markup": None
+        }
 
-        self.assertIn('Sorry',response.data['reply'])
+        payload = {
+            "callback_query": {
+                "id": "abc",
+                "from": {"id": 123},
+                "data": "confirm_order"
+            }
+        }
 
-    def test_product_not_found(self):
-        response = self.client.post(self.url, {
-            "message": "price of something else",
-            "sender_id": self.sender_id
-        }, format='json')
+        response = self.client.post(self.url, payload, format="json")
 
-        self.assertIn("Which product", response.data['reply'])
-    
-    def test_confirm_without_order(self):
-        response = self.client.post(self.url, {
-            "message": "YES",
-            "sender_id": self.sender_id
-        }, format='json')
+        self.assertEqual(response.status_code, 200)
+        mock_handle_callback.assert_called_once_with("confirm_order", 123)
+        args, kwargs = mock_requests.call_args
+        self.assertIn("answerCallbackQuery", args[0])
+        self.assertEqual(kwargs["json"], {"callback_query_id": "abc"})
+        mock_send.assert_called_once()
 
-        self.assertIn("No pending order", response.data['reply'])
+    def test_ignore_invalid(self):
+        """
+        Test: empty payload is ignored
+        """
+        response = self.client.post(self.url, {}, format="json")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], "ignored")
