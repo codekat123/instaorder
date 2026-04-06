@@ -6,6 +6,28 @@ def handle_callback(callback_data: str, sender_id: str):
     lead, _ = Lead.objects.get_or_create(external_id=sender_id)
 
 
+    if callback_data.startswith("admin_"):
+        parts = callback_data.split("_")
+        action = parts[1]
+        order_id = int(parts[2])
+
+        order = Order.objects.get(id=order_id)
+
+        if action == "confirm":
+            order.status = "confirmed"
+
+        elif action == "ship":
+            order.status = "shipped"
+
+        elif action == "cancel":
+            order.status = "cancelled"
+
+        order.save()
+
+        return {
+            "text": f"Order {order.id} updated to {order.status} ✅"
+        }
+
     if callback_data == "view_products":
         products = Product.objects.all()
 

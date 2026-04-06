@@ -11,7 +11,7 @@ class OrderChoice(models.TextChoices):
 class Order(models.Model):
     
     lead = models.ForeignKey(
-        Lead,
+        Lead,   
         on_delete=models.CASCADE,
     )
     product = models.ForeignKey(

@@ -71,3 +71,51 @@ class TelegramWebhookTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["status"], "ignored")
+
+    def test_create_order(self):
+        lead = Lead.objects.create(external_id="123")
+        product = Product.objects.create(name="iPhone", price=1000)
+
+        from messaging.services import handle_callback
+
+        response = handle_callback(f"order_{product.id}", "123")
+
+        order = Order.objects.filter(lead=lead).first()
+
+        self.assertIsNotNone(order)
+        self.assertEqual(order.product, product)
+        self.assertEqual(order.status, "pending")
+
+    def test_confirm_order(self):
+        lead = Lead.objects.create(external_id="123")
+        product = Product.objects.create(name="iPhone", price=1000)
+
+        order = Order.objects.create(
+            lead=lead,
+            product=product,
+            status="pending"
+        )
+
+        from messaging.services import handle_callback
+
+        response = handle_callback("confirm_order", "123")
+
+        order.refresh_from_db()
+
+        self.assertEqual(order.status, "confirmed")
+    
+    def test_cancel_order(self):
+        lead = Lead.objects.create(external_id="123")
+        product = Product.objects.create(name="iPhone", price=1000)
+
+        order = Order.objects.create(
+            lead=lead,
+            product=product,
+            status="pending"
+        )
+
+        from messaging.services import handle_callback
+
+        response = handle_callback("cancel_order", "123")
+
+        self.assertFalse(Order.objects.filter(id=order.id).exists())
