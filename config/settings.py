@@ -13,7 +13,6 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 META_VERIFY_TOKEN = os.getenv("META_VERIFY_TOKEN")
 
 ALLOWED_HOSTS = [
-    "instaorder-production.up.railway.app",
     "*"
 ]
 
@@ -35,10 +34,7 @@ INTERNAL_APPS = [
 ]
 
 ENTERNAL_APPS = [
-    'leads',
-    'messaging',
-    'order',
-    'products',
+    'bot',
 ]
 
 
