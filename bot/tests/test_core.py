@@ -55,7 +55,7 @@ class CoreBotTest(TestCase):
         self.assertEqual(order.status, OrderChoice.CONFIRMED)
 
     def test_order_cancellation(self):
-        """Test order cancellation"""
+
 
         order = Order.objects.create(lead=self.lead, product=self.product, status=OrderChoice.PENDING)
         
@@ -66,7 +66,7 @@ class CoreBotTest(TestCase):
         self.assertFalse(Order.objects.filter(id=order.id).exists())
 
     def test_view_orders(self):
-        """Test viewing user orders"""
+
 
         Order.objects.create(lead=self.lead, product=self.product, status=OrderChoice.PENDING)
         
@@ -75,7 +75,6 @@ class CoreBotTest(TestCase):
         self.assertIn(self.product.name, response["text"])
 
     def test_product_details(self):
-        """Test viewing individual product"""
         response = handle_callback(f"product_{self.product.id}", self.sender_id)
         
         self.assertEqual(response["text"], self.product.name)
@@ -85,18 +84,15 @@ class CoreBotTest(TestCase):
         self.assertEqual(len(keyboard), 2)  
 
     def test_price_inquiry(self):
-        """Test price inquiry"""
         response = handle_callback(f"price_{self.product.id}", self.sender_id)
         
         self.assertIn(self.product.name, response["text"])
         self.assertIn(str(self.product.price), response["text"])
 
     def test_unknown_message(self):
-        """Test handling of unknown messages"""
         response = handle_message("random text", self.sender_id)
         self.assertEqual(response["text"], "Use /start to begin 🙂")
 
     def test_unknown_callback(self):
-        """Test handling of unknown callbacks"""
         response = handle_callback("unknown_action", self.sender_id)
         self.assertEqual(response["text"],"Something went wrong 😅")

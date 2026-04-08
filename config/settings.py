@@ -70,7 +70,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-if DEBUG:
+
+
+ENV = os.getenv("ENV", "dev")  
+
+
+if ENV == "ci":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
+    }
+
+elif ENV == "prod":
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.getenv("DATABASE_URL")
+        )
+    }
+
+else:  
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -81,15 +101,13 @@ if DEBUG:
             "PORT": os.getenv('DB_PORT'),
         }
     }
-else:
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=os.getenv("DATABASE_URL")
-        )
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
-
-
-
+}
 
 
 

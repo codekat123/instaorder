@@ -19,9 +19,7 @@ class TelegramWebhookTests(TestCase):
     @patch("bot.views.webhook.send_telegram_message")
     @patch("bot.views.webhook.handle_message")
     def test_message_flow(self, mock_handle_message, mock_send):
-        """
-        Test: normal message goes to handle_message
-        """
+
         mock_handle_message.return_value = {
             "text": "Hello",
             "reply_markup": None

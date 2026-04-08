@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save 
 from django.dispatch import receiver
 from .models import Order 
-from bot.utils import send_telegram_message
+from .services import send_telegram_message
 import os
 
 
