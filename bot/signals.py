@@ -7,6 +7,9 @@ import os
 
 @receiver(post_save, sender=Order)
 def notify_admin_order(sender, instance, created, **kwargs):
+    if not created:
+        return
+    
     buttons = {
         "inline_keyboard": [
             [

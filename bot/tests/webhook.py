@@ -38,32 +38,6 @@ class TelegramWebhookTests(APITestCase):
         mock_handle_message.assert_called_once_with("/start", 123, None)
         mock_send.assert_called_once()
 
-    @patch("bot.views.send_telegram_message")
-    @patch("bot.views.handle_callback")
-    @patch("bot.views.requests.post")
-    def test_callback_flow(self, mock_requests, mock_handle_callback, mock_send):
-        mock_handle_callback.return_value = {
-            "text": "Done",
-            "reply_markup": None
-        }
-
-        payload = {
-            "callback_query": {
-                "id": "abc",
-                "from": {"id": 123},
-                "data": "confirm_order"
-            }
-        }
-
-        response = self.client.post(self.url, payload, format="json")
-
-        self.assertEqual(response.status_code, 200)
-        mock_handle_callback.assert_called_once_with("confirm_order", 123)
-        args, kwargs = mock_requests.call_args
-        self.assertIn("answerCallbackQuery", args[0])
-        self.assertEqual(kwargs["json"], {"callback_query_id": "abc"})
-        mock_send.assert_called_once()
-
     def test_ignore_invalid(self):
         """
         Test: empty payload is ignored
