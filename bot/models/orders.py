@@ -5,7 +5,7 @@ from .products import Product
 
 class OrderChoice(models.TextChoices):
     PENDING = 'pending' , 'Pending'
-    CONFIRMED = 'confired' , 'Confirmed'
+    CONFIRMED = 'confirmed' , 'Confirmed'
     CANCELLED = 'cancelled', 'Cancelled'
     SHIPPED = 'shipped', 'Shipped'
 

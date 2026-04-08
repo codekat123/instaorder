@@ -2,7 +2,7 @@ from bot.models import Lead, Product, Order, Conversation, OrderChoice
 from django.test import TestCase
 from bot.services.handle_message import handle_message
 from bot.services.handle_callback import handle_callback
-from bot.services.orders import handle_order_start, handle_confirm, handle_cancel,handle_phone_submission
+from bot.services.orders import handle_phone_submission
 
 
 class CoreBotTest(TestCase):

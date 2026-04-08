@@ -8,7 +8,7 @@ from .services import (
     is_rate_limited
 )
 import logging
-
+import requests
 logger = logging.getLogger(__name__)
 
 
